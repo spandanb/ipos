@@ -1,7 +1,7 @@
 """
 Handles the broker/server side logic
 """
-from getText import getText
+from getPage import getText
 from streamData import dataStream
 from send import sendToPhone
 
