@@ -6,7 +6,7 @@ This is achieved in 2 parts: 1) getting the page,
 import requests
 from libextract.api import extract
 import re
-
+import sys
 """
 There are two parts to this: 1)get the page, 
 and parse the data.
@@ -29,9 +29,14 @@ to get boilerplate content.
 #TODO: parse should be able to parse to varying  
 #levels based on bandwidth requirments
 
-def getPage(url):
+def rmNonAscii(string):
+    return ''.join([c for c in string if ord(c)<128])
+
+
+def getResp(url):
     """
-    Get page corresponding to url
+    Returns the response corresponding 
+    to GET on url
     """
     resp = requests.get(url)
     return resp
@@ -51,16 +56,33 @@ def parse(page, rm_newline=True, rm_non_ascii=True):
         text = re.sub('\n', '', text)
     
     if rm_non_ascii:
-        text = ''.join(i for i in text if ord(i)<128)
+        text = rmNonAscii(text) 
 
     return text
 
 def getText(url):
-    page = getPage(url)
+    """
+    Get the content on the page specified by
+    the url
+    """
+    page = getResp(url)
     text = parse(page.content)
     return text
 
+def getPage(url):
+    """
+    Get the page
+    """
+    #NOTE: To get the images/css/js files, need to parse
+    # response to see the linked file and make requests for those
+    
+    r = requests.get(url, stream=True)
+    page = [chunk for chunk in r.iter_content() ]
+    page = "".join(page)
+    page = rmNonAscii(page)
+    return page
+
 if __name__ == "__main__":
     url ="http://en.wikipedia.org/wiki/Information_extraction"
-    print getText(url)
+    page = getPage(url)
 
