@@ -69,7 +69,31 @@ def getResp(url):
 #    text = parse(page.content)
 #    return text
 
-def getPage(url):
+def tag_message(msg):
+    """
+    This tags the message with identifiers
+    such that they can be ordered
+    """
+    MSG_LEN = 160
+    #Tag Format is @@XXXX -> can order upto 9999 messages
+    # = 9999 bytes
+    TAG_LEN = 6
+    #The step size while iterating over msg
+    step = MSG_LEN - TAG_LEN
+
+    #Get tag
+    get_tag = lambda i: "@@" + str(i).zfill(4) 
+    #Get tagged chunk
+    get_tagged = lambda i, chunk: get_tag(i) + chunk
+
+    chunks = (msg[i:i+step] for i in range(0, len(msg), step))
+
+    tagged_chunks = [get_tagged(i, chunk) for i, chunk in enumerate(chunks)]
+
+    msg = ''.join(tagged_chunks)
+    return msg
+
+def getPage(url, max_len=400, tag_msg=True):
     """
     Get the page
     """
@@ -80,10 +104,12 @@ def getPage(url):
     page = [chunk for chunk in r.iter_content() ]
     page = "".join(page)
     page = rmNonAscii(page)
+    page = page[0: max_len]
+    if tag_msg:
+        page = tag_message(page)
     return page
 
 if __name__ == "__main__":
-    url ="http://en.wikipedia.org/wiki/Information_extraction"
     url ="http://en.wikipedia.org/wiki/Topness"
     page = getPage(url)
     print page

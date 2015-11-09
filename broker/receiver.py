@@ -12,8 +12,13 @@ from getData import getPage
 app = Flask(__name__)
  
 def get_url(message):
+    """
+    Extract the URL from 
+    the request sent by the client
+    """
     url = message.strip()
     return url
+
 
 @app.route("/", methods=['GET', 'POST'])
 def hello_monkey():
@@ -29,13 +34,15 @@ def hello_monkey():
     #The request url 
     url = get_url(req)
     print "Requested URL is {}".format(url)
-   
+    
+    #Note Twilio limits the sms size to 1600 chars
+    #It will do the fragmentation 
+    #However there is no ordering guarantee 
     page = getPage(url)
-    resp_msg = page[:100] #return first 100 chars
 
     #Response
     resp = twilio.twiml.Response()
-    resp.message(resp_msg)
+    resp.message(page)
     return str(resp)
  
 if __name__ == "__main__":
