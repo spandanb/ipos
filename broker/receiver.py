@@ -12,7 +12,7 @@ from getData import getPage
 app = Flask(__name__)
  
 def get_url(message):
-    url = message.split(" ")[1]
+    url = message.strip()
     return url
  
 @app.route("/", methods=['GET', 'POST'])
