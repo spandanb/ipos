@@ -7,8 +7,13 @@ and responding to received message
 from flask import Flask, request, redirect
 import twilio.twiml
 import os
+from getData import getPage
 
 app = Flask(__name__)
+ 
+def get_url(message):
+    url = message.split(" ")[1]
+    return url
  
 @app.route("/", methods=['GET', 'POST'])
 def hello_monkey():
@@ -17,11 +22,19 @@ def hello_monkey():
     #https://www.twilio.com/docs/api/twiml/sms/twilio_request
 
     print "Receieved message {} from {}".format(
-                reques.form['Body'], request.form['From'])
+                request.form['Body'], request.form['From'])
+    
+    #The request
+    req = request.form['Body']
+    #The request url 
+    url = get_url(req)
+    print "Requested URL is {}".format(url)
+   
+    page = getPage(url)
 
     #Response
     resp = twilio.twiml.Response()
-    resp.message("Hello, Mobile Monkey")
+    resp.message(page)
     return str(resp)
  
 if __name__ == "__main__":
