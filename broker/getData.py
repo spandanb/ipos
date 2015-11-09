@@ -4,7 +4,7 @@ This is achieved in 2 parts: 1) getting the page,
 2) cleaning the page
 """
 import requests
-from libextract.api import extract
+#from libextract.api import extract
 import re
 import sys
 """
@@ -41,33 +41,33 @@ def getResp(url):
     resp = requests.get(url)
     return resp
 
-def parse(page, rm_newline=True, rm_non_ascii=True):
-    """
-        Arguments:
-        page- the page as a string
-        rm_newline- remove \n
-    """
-    #Extract: str-> generator (5 elements)
-    #type(textnodes) -> lxml.etree._ElementUnicodeResult
-    textnodes = list(extract(page))
-    text = textnodes[0].text_content()
-
-    if rm_newline:
-        text = re.sub('\n', '', text)
-    
-    if rm_non_ascii:
-        text = rmNonAscii(text) 
-
-    return text
-
-def getText(url):
-    """
-    Get the content on the page specified by
-    the url
-    """
-    page = getResp(url)
-    text = parse(page.content)
-    return text
+#def parse(page, rm_newline=True, rm_non_ascii=True):
+#    """
+#        Arguments:
+#        page- the page as a string
+#        rm_newline- remove \n
+#    """
+#    #Extract: str-> generator (5 elements)
+#    #type(textnodes) -> lxml.etree._ElementUnicodeResult
+#    textnodes = list(extract(page))
+#    text = textnodes[0].text_content()
+#
+#    if rm_newline:
+#        text = re.sub('\n', '', text)
+#    
+#    if rm_non_ascii:
+#        text = rmNonAscii(text) 
+#
+#    return text
+#
+#def getText(url):
+#    """
+#    Get the content on the page specified by
+#    the url
+#    """
+#    page = getResp(url)
+#    text = parse(page.content)
+#    return text
 
 def getPage(url):
     """
