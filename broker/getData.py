@@ -84,5 +84,7 @@ def getPage(url):
 
 if __name__ == "__main__":
     url ="http://en.wikipedia.org/wiki/Information_extraction"
+    url ="http://en.wikipedia.org/wiki/Topness"
     page = getPage(url)
+    print page
 

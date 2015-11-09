@@ -14,7 +14,7 @@ app = Flask(__name__)
 def get_url(message):
     url = message.strip()
     return url
- 
+
 @app.route("/", methods=['GET', 'POST'])
 def hello_monkey():
     """Respond to incoming calls with a simple text message."""
@@ -31,10 +31,11 @@ def hello_monkey():
     print "Requested URL is {}".format(url)
    
     page = getPage(url)
+    resp_msg = page[:100] #return first 100 chars
 
     #Response
     resp = twilio.twiml.Response()
-    resp.message(page)
+    resp.message(resp_msg)
     return str(resp)
  
 if __name__ == "__main__":
