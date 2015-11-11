@@ -25,7 +25,11 @@ def dataStream(data, size=160, total=480):
         size: the size each substring
         total: total number of characters to send 
     """
-    ubound = min(len(data), total)
+    if total<=0:
+        ubound = len(data)
+    else:
+        ubound = min(len(data), total)
+
     for i in range(0, ubound, size):
         yield data[i:i+size]
 

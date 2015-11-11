@@ -7,6 +7,7 @@ import requests
 #from libextract.api import extract
 import re
 import sys
+from streamData import dataStream 
 """
 There are two parts to this: 1)get the page, 
 and parse the data.
@@ -79,18 +80,29 @@ def tag_message(msg):
     # = 9999 bytes
     TAG_LEN = 6
     #The step size while iterating over msg
-    step = MSG_LEN - TAG_LEN
+    STEP = MSG_LEN - TAG_LEN
 
     #Get tag
+    # index -> @@XXXX
     get_tag = lambda i: "@@" + str(i).zfill(4) 
+    
     #Get tagged chunk
     get_tagged = lambda i, chunk: get_tag(i) + chunk
 
-    chunks = (msg[i:i+step] for i in range(0, len(msg), step))
-
-    tagged_chunks = [get_tagged(i, chunk) for i, chunk in enumerate(chunks)]
-
-    msg = ''.join(tagged_chunks)
+    #"Sent from your Twilio trial account - ".length == 38
+    OFFSET = 38
+    chunks = []
+    #Append the first chunk
+    chunks.append(get_tag(0) + msg[0: STEP - OFFSET])
+    #Iterate over msg len at step interval
+    for i,j in enumerate(range(STEP - OFFSET, len(msg), STEP)):
+        #i iterates over number of chunks
+        #j iterates over index in message
+        chunks.append(get_tag(i+1) + msg[j:j+STEP])
+    
+    msg = ''.join(chunks)
+    #Add an end tag
+    msg += "@@@@@@"
     return msg
 
 def getPage(url, max_len=400, tag_msg=True):
@@ -112,5 +124,9 @@ def getPage(url, max_len=400, tag_msg=True):
 if __name__ == "__main__":
     url ="http://en.wikipedia.org/wiki/Topness"
     page = getPage(url)
-    print page
+    prelogue = "Sent from your Twilio trial account - "
+    for chunk in dataStream(prelogue + page, total=-1):
+        print "----------------------"
+        print chunk
+
 
