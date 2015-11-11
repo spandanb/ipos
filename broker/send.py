@@ -21,9 +21,13 @@ def sendToPhone(to=os.environ["PHONE_NUMBER_TO"], body="Hello there" ):
         body=body,  
     )
 
-if __name__ == "__main__":
-    url ="http://en.wikipedia.org/wiki/Topness"
+def test1():
     url ="https://en.wikipedia.org/wiki/Bottom_quark"
     page = getPage(url)
     to_send = page[:400]
     sendToPhone(body=to_send)
+
+
+
+if __name__ == "__main__":
+    test2()

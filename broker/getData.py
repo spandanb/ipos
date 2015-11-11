@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 """
 This module gets text from request url.
 This is achieved in 2 parts: 1) getting the page,
@@ -7,7 +9,8 @@ import requests
 #from libextract.api import extract
 import re
 import sys
-from streamData import dataStream 
+from streamData import emulateSms 
+from utils import is_esc_char, byte_len, chunk_iter_offset, prologue
 """
 There are two parts to this: 1)get the page, 
 and parse the data.
@@ -70,7 +73,7 @@ def getResp(url):
 #    text = parse(page.content)
 #    return text
 
-def tag_message(msg):
+def tag_message2(msg):
     """
     This tags the message with identifiers
     such that they can be ordered
@@ -93,17 +96,61 @@ def tag_message(msg):
     OFFSET = 38
     chunks = []
     #Append the first chunk
-    chunks.append(get_tag(0) + msg[0: STEP - OFFSET])
+#    chunks.append(get_tag(0) + msg[0: STEP - OFFSET])
     #Iterate over msg len at step interval
-    for i,j in enumerate(range(STEP - OFFSET, len(msg), STEP)):
-        #i iterates over number of chunks
-        #j iterates over index in message
-        chunks.append(get_tag(i+1) + msg[j:j+STEP])
+#    for i,j in enumerate(range(STEP - OFFSET, len(msg), STEP)):
+#        #i iterates over number of chunks
+#        #j iterates over index in message
+#        chunks.append(get_tag(i+1) + msg[j:j+STEP])
+   
     
-    msg = ''.join(chunks)
+    indices = []
+    start_index = -1
+    i = 0
+    for char in msg:
+        if i%STEP == 0:
+            #start index
+            start_index = i
+
+        elif (i+1) % STEP == 0:
+            #end index
+            indices.append((start_index, i))
+
+        #increment index
+        if is_esc_char(char):
+            i+=2
+        else:
+            i+=1
+
+        #if first_chunk:
+    print indices
+    #msg = ''.join(chunks)
     #Add an end tag
-    msg += "@@@@@@"
-    return msg
+    #msg += "@@@@@@"
+    #return msg
+
+def tag_message(msg):
+    MSG_LEN = 160
+    #Tag Format is @@XXXX -> can order upto 9999 messages
+    # = 9999 bytes
+    TAG_LEN = 6
+    #The step size while iterating over msg
+    STEP = MSG_LEN - TAG_LEN
+
+    #Get tag
+    # index -> @@XXXX
+    get_tag = lambda i: "@@" + str(i).zfill(4) 
+    
+    #Get tagged chunk
+    get_tagged = lambda i, chunk: get_tag(i) + chunk
+    
+    offset = STEP - len(prologue)
+    
+    chunks = []
+    for i, chunk in enumerate(chunk_iter_offset(msg, size=STEP, offset=offset)):
+        chunks.append(get_tagged(i, chunk))
+
+    return "".join(chunks)
 
 def getPage(url, max_len=400, tag_msg=True):
     """
@@ -121,12 +168,16 @@ def getPage(url, max_len=400, tag_msg=True):
         page = tag_message(page)
     return page
 
-if __name__ == "__main__":
+
+def test1():
     url ="http://en.wikipedia.org/wiki/Topness"
     page = getPage(url)
-    prelogue = "Sent from your Twilio trial account - "
-    for chunk in dataStream(prelogue + page, total=-1):
-        print "----------------------"
+    for chunk in emulateSms(page, size=160):
         print chunk
+        print byte_len(chunk)
+        print "-------------------------------"
 
+
+if __name__ == "__main__":
+    test1()
 
