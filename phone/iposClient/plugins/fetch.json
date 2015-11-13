@@ -1,0 +1,8 @@
+{
+    "com.rjfun.cordova.sms": {
+        "source": {
+            "type": "registry",
+            "id": "com.rjfun.cordova.sms"
+        }
+    }
+}

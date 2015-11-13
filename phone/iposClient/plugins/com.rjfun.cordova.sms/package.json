@@ -1,0 +1,20 @@
+{
+    "version": "1.0.3",
+    "name": "com.rjfun.cordova.sms",
+    "cordova_name": "SMS",
+    "description": "Plugin to operate SMS, send/list/intercept/delete/restore",
+    "license": "MIT",
+    "keywords": [
+        "rjfun",
+        "sms"
+    ],
+    "platforms": [
+        "android"
+    ],
+    "engines": [
+        {
+            "name": "cordova",
+            "version": ">=3.0.0"
+        }
+    ]
+}
