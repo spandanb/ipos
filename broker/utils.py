@@ -4,7 +4,7 @@ Utility functions
 """
 
 import re
-
+import pdb
 
 #Need to account for escape chars 
 #since escape characters take 2 bytes
@@ -45,29 +45,30 @@ def chunk_iter(data, size=160):
     byte_idx = 0
     for i, char in enumerate(data):
         #print "i={}, b={}, char={}".format(i,byte_idx, char)
+        #Keep track of chunk start
         if byte_idx  == 0:
             start_idx = i
-
-        elif byte_idx == size-1:
-            yield data[start_idx: i+1]
-            byte_idx = 0
-            continue
-
-        #Peak
-        elif byte_idx == size-2:
-            #we only have capacity to send one
-            #more byte but next char will require 
-            #2 bytes
-            if can_peak(i,data) and is_esc_char(data[i+1]):
-                yield data[start_idx: i+1]
-                byte_idx = 0
-                continue
 
         #Increment byte_idx
         if is_esc_char(char):
             byte_idx += 2
         else:
             byte_idx += 1
+
+        #Check if chunk can be emitted
+        if byte_idx == size:
+            #At capacity-> emit chunk 
+            yield data[start_idx: i+1]
+            byte_idx = 0
+
+        #Peak
+        elif byte_idx == size-1:
+            #we have capacity to send one char
+            #if next char will require 
+            #2 bytes, emit the current chunk 
+            if can_peak(i,data) and is_esc_char(data[i+1]):
+                yield data[start_idx: i+1]
+                byte_idx = 0
 
     #yield any remaining chars
     if byte_len(data) % size != 0:
@@ -81,14 +82,25 @@ def chunk_iter_offset(data, size=160, offset=0):
     """
     #Handle offset
     if offset > size:
-        print "ERROR: offset must be greater than size"
+        print "ERROR: offset must be less than size"
         return
 
     if offset > 0:
         for chunk in chunk_iter(data, size=offset):
             yield chunk 
             break
-        data = data[offset:]
-        
-    for chunk in chunk_iter(data, size=size):
+        tail = data[offset:]
+    
+    for chunk in chunk_iter(tail, size=size):
         yield chunk
+
+def test1():
+    data1 = "0123456789" #Base case
+    data2 = "012[456789" #i-case #why is this special
+    data3 = "0123[456789" #i+1case
+    for chunk in chunk_iter(data3, size=5):
+        print "BYTE_LEN= {} CHUNK= {}".format(byte_len(chunk), chunk)
+    
+
+if __name__ == "__main__":
+    test1()

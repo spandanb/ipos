@@ -33,6 +33,7 @@ to get boilerplate content.
 #TODO: parse should be able to parse to varying  
 #levels based on bandwidth requirments
 
+#TODO: move to utils
 def rmNonAscii(string):
     return ''.join([c for c in string if ord(c)<128])
 
@@ -87,7 +88,7 @@ def tag_message2(msg):
 
     #Get tag
     # index -> @@XXXX
-    get_tag = lambda i: "@@" + str(i).zfill(4) 
+    get_tag = lambda i: str(i).zfill(6) 
     
     #Get tagged chunk
     get_tagged = lambda i, chunk: get_tag(i) + chunk
@@ -130,6 +131,18 @@ def tag_message2(msg):
     #return msg
 
 def tag_message(msg):
+    """
+    Insert serialization tag in msg
+    where we anticipate a fragmentation.
+
+    Note: fragmentation has many rules, i.e.
+    seemingly fragmentation does not break words.
+    But if you have ({ without whitespace- then fragmentation
+    can happen along those. 
+
+    Documentation is also non-existent, 
+    maybe look in GSM standard
+    """
     MSG_LEN = 160
     #Tag Format is @@XXXX -> can order upto 9999 messages
     # = 9999 bytes
@@ -139,7 +152,7 @@ def tag_message(msg):
 
     #Get tag
     # index -> @@XXXX
-    get_tag = lambda i: "@@" + str(i).zfill(4) 
+    get_tag = lambda i:  "@@" +  str(i).zfill(4) 
     
     #Get tagged chunk
     get_tagged = lambda i, chunk: get_tag(i) + chunk
@@ -148,9 +161,18 @@ def tag_message(msg):
     
     chunks = []
     for i, chunk in enumerate(chunk_iter_offset(msg, size=STEP, offset=offset)):
+        #print "byte_len is {}\n{}\n{}\n{}\n\n".format(byte_len(chunk), "-"*40, chunk, "="*40)
         chunks.append(get_tagged(i, chunk))
 
-    return "".join(chunks)
+    #Use an end-tag to indicate end, 
+    #and track total number of chars sent 
+    #end tag format @@EXXXX -> XXXX=string len (not byte length) 
+    #of untagged message
+    #can be from 1 to 9999*160 ~ 1,600,000 
+    tagged_msg = "".join(chunks)
+    tagged_msg =  tagged_msg + "@@E" + str(len(msg)) + "E@@"
+
+    return tagged_msg
 
 def getPage(url, max_len=400, tag_msg=True):
     """
@@ -170,13 +192,18 @@ def getPage(url, max_len=400, tag_msg=True):
 
 
 def test1():
-    url ="http://en.wikipedia.org/wiki/Topness"
+    #url ="http://en.wikipedia.org/wiki/Topness" #Works 
+    url ="https://en.wikipedia.org/wiki/Bottom_quark" #Doesn't work
     page = getPage(url)
     for chunk in emulateSms(page, size=160):
         print chunk
         print byte_len(chunk)
         print "-------------------------------"
 
+def test2():
+    url ="http://en.wikipedia.org/wiki/Topness" #Works 
+    #url ="https://en.wikipedia.org/wiki/Bottom_quark" #Doesn't work
+    page = getPage(url)
 
 if __name__ == "__main__":
     test1()
